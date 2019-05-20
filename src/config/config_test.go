@@ -17,6 +17,13 @@ func TestLoad(t *testing.T) {
   if(watcher.PATH!="/Users/localhome/test1") {
     t.Errorf("Watcher path did not match expected")
   }
+
+  if(config.REDIS.REDISHOST!="localhost:6379"){
+    t.Errorf("Unexpected redis host")
+  }
+  if(config.REDIS.REDISDB!=0){
+    t.Errorf("Unexpected redis db index")
+  }
 }
 
 func TestWatcherFor(t *testing.T) {

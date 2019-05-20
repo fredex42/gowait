@@ -5,3 +5,6 @@ watchers:
   - path: /Users/localhome/test2
     timeout: 4  #in seconds
     stable: 2   #number of timeouts that it must remain stable
+redis:
+  redishost: localhost:6379
+  redisdb:   0

@@ -5,12 +5,13 @@ import "bytes"
 import "github.com/go-redis/redis"
 import "time"
 import "os"
+import "strings"
 
 type WatchRecord struct {
-  path string
-  filename string
-  last_mtime time.Time
-  stable_iterations int
+  Path string
+  Filename string
+  LastMtime time.Time
+  StableIterations int
 }
 
 /**
@@ -43,7 +44,7 @@ func gobstring_to_watchrecord(bytestring *[]byte) (*WatchRecord, error) {
 }
 
 func get_keyname(path string, filename string) (string) {
-  var keyname string.Builder
+  var keyname strings.Builder
 
   keyname.WriteString(path)
   keyname.WriteString(":")
@@ -57,25 +58,55 @@ look up the path in Redis. Return nil if we have no record
 */
 func get_watch_record_with_retry(path string, filename string, client *redis.Client) (*WatchRecord, error){
   keyname := get_keyname(path, filename)
-  
-  val, readErr := client.Get(keyname.String()).Result()
+
+  val, readErr := client.Get(keyname).Result()
   if(readErr != nil){
     if(readErr == redis.Nil){ //no record existed, create a new one
       newRecord := WatchRecord{}
-      newRecord.path = path
-      newRecord.filename = filename
-      newRecord.last_mtime = nil
-      newRecord.stable_iterations = 0
-      return &newRecord, 0
+      newRecord.Path = path
+      newRecord.Filename = filename
+      newRecord.LastMtime = time.Unix(0,0)
+      newRecord.StableIterations = 0
+      return &newRecord, nil
     } else {                  //something went kaboom
       return nil, readErr
     }
   } else {                  //we got data
-    newRecord := gobstring_to_watchrecord(val)
-    return &newRecord, 0
+    bytesval := []byte(val)
+    newRecord,err := gobstring_to_watchrecord(&bytesval)
+    if(err!=nil){
+      return nil, err
+    } else {
+      return newRecord, nil
+    }
   }
 }
 
 func update_watch_record(old_record *WatchRecord, current_state *os.FileInfo, client *redis.Client) (*WatchRecord, error){
-  return nil, nil
+  new_record := WatchRecord{}
+
+  new_record.Path = old_record.Path
+  new_record.Filename = old_record.Filename
+  new_record.LastMtime = (*current_state).ModTime()
+  if((*current_state).ModTime()==old_record.LastMtime){
+    new_record.StableIterations=old_record.StableIterations+1
+  } else {
+    new_record.StableIterations = 0
+  }
+
+  keyname := get_keyname(new_record.Path, new_record.Filename)
+  bytesToWritePtr, gobErr := watchrecord_to_gobstring(&new_record)
+  if(gobErr!=nil){
+    return nil, gobErr
+  }
+  keepTime, timeErr := time.ParseDuration("5m")
+  if(timeErr!=nil){
+    return nil, timeErr
+  }
+
+  _, writeErr := client.Set(keyname, *bytesToWritePtr, keepTime).Result()
+  if(writeErr!=nil){
+    return nil, writeErr
+  }
+  return &new_record, nil
 }

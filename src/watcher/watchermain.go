@@ -4,6 +4,7 @@ import . "config"
 import "flag"
 import "fmt"
 import "time"
+import "github.com/go-redis/redis"
 
 func main() {
   configFilenamePtr := flag.String("configfile","/etc/gowait/config.yaml","Path to configuration YAML file")
@@ -21,6 +22,21 @@ func main() {
     panic("Need a readable configuration")
   }
 
+  //connect to Redis
+  redisdb := redis.NewClient(&redis.Options {
+    Addr: configData.REDIS.REDISHOST,
+    Password: configData.REDIS.REDISPASS,
+    DB: configData.REDIS.REDISDB,
+  })
+
+  //test redis connection
+  _, err := redisdb.Ping().Result()
+  if(err!=nil){
+    fmt.Printf("ERROR: Couldn't connect to Redis: %s\n", err)
+    panic("Couldn't connect to redis")
+  }
+
+  fmt.Printf("INFO: Connected to Redis at %s on db %d\n\n", configData.REDIS.REDISHOST, configData.REDIS.REDISDB)
   //fmt.Print(configData)
   targetWatcher, findWatcherErr := WatcherFor(*pathToWatchPtr, configData)
 
@@ -30,7 +46,7 @@ func main() {
   }
   fmt.Printf("Using watcher for %s\n", targetWatcher.PATH)
 
-  setup_ticker(targetWatcher, targetWatcher.TIMEOUT)
+  setup_ticker(targetWatcher, targetWatcher.TIMEOUT, redisdb)
 
   for {
     time.Sleep(time.Duration(3600)*time.Hour)

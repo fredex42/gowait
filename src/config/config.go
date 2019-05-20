@@ -11,8 +11,15 @@ type Watcher struct {
   STABLE int
 }
 
+type PersistentStore struct {
+  REDISHOST string
+  REDISDB   int
+  REDISPASS string
+}
+
 type ConfigFile struct {
   WATCHERS []Watcher
+  REDIS    PersistentStore
 }
 
 func LoadConfig(filename string) (*ConfigFile, error) {
