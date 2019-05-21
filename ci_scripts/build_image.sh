@@ -2,6 +2,7 @@
 
 #FIXME: should resolve absolute path to script's parent dir insead
 declare -x BASEPATH=$PWD
+declare -x GO111MODULE=on
 
 if [ -d $BASEPATH/ci_scripts/staging ]; then
   rm -rf $BASEPATH/ci_scripts/staging
