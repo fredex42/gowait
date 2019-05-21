@@ -1,7 +1,0 @@
-watchers:
-  - path: /Users/localhome/test1
-    timeout: 3  #in seconds
-    stable: 2   #number of timeouts that it must remain stable
-  - path: /Users/localhome/test2
-    timeout: 4  #in seconds
-    stable: 2   #number of timeouts that it must remain stable
