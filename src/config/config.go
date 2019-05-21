@@ -11,6 +11,11 @@ type Watcher struct {
   STABLE int
 }
 
+type RunConfig struct {
+  NAMESPACE string
+  COMMAND string
+}
+
 type PersistentStore struct {
   REDISHOST string
   REDISDB   int
