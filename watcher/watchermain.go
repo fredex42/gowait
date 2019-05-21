@@ -1,6 +1,6 @@
 package main
 
-import . "config"
+import "github.com/gowait/config"
 import "flag"
 import "fmt"
 import "time"
@@ -16,7 +16,7 @@ func main() {
     panic("You need to specify a configuration file")
   }
 
-  configData, configLoadErr := LoadConfig(*configFilenamePtr)
+  configData, configLoadErr := config.LoadConfig(*configFilenamePtr)
   if(configLoadErr!=nil){
     fmt.Printf("Could not parse configuration: %s\n", configLoadErr)
     panic("Need a readable configuration")
@@ -38,7 +38,7 @@ func main() {
 
   fmt.Printf("INFO: Connected to Redis at %s on db %d\n\n", configData.REDIS.REDISHOST, configData.REDIS.REDISDB)
   //fmt.Print(configData)
-  targetWatcher, findWatcherErr := WatcherFor(*pathToWatchPtr, configData)
+  targetWatcher, findWatcherErr := config.WatcherFor(*pathToWatchPtr, configData)
 
   if(targetWatcher==nil && findWatcherErr==nil){
     fmt.Printf("Could not find watcher %s in the config\n", *pathToWatchPtr)

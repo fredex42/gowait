@@ -2,7 +2,7 @@ package main
 
 import "time"
 import "fmt"
-import "config"
+import "github.com/gowait/config"
 import "github.com/go-redis/redis"
 
 func dump_record(rec *WatchRecord) () {
