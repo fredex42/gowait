@@ -1,13 +1,12 @@
-package main
+package filescanner
 
 import "io/ioutil"
 import "github.com/go-redis/redis"
-
 /**
 scans the given directory and returns a list of WatchRecord pointers, updated for
 this pass.
 */
-func scan_pass(dirname string, redisClient *redis.Client) ([]*WatchRecord, error){
+func ScanPass(dirname string, redisClient *redis.Client) ([]*WatchRecord, error){
   files, err := ioutil.ReadDir(dirname)
 
   if(err != nil) {

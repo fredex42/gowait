@@ -1,4 +1,4 @@
-package main
+package filescanner
 
 import "encoding/gob"
 import "bytes"

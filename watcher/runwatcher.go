@@ -4,8 +4,9 @@ import "time"
 import "fmt"
 import "github.com/gowait/config"
 import "github.com/go-redis/redis"
+import "github.com/gowait/filescanner"
 
-func dump_record(rec *WatchRecord) () {
+func dump_record(rec *filescanner.WatchRecord) () {
   fmt.Printf("Got record:\n")
   if(rec==nil){ return; }
   fmt.Printf("\tPath: %s\n", rec.Path)
@@ -14,7 +15,7 @@ func dump_record(rec *WatchRecord) () {
   fmt.Printf("\tstable iterations: %d\n", rec.StableIterations)
 }
 
-func dump_records(records []*WatchRecord) (){
+func dump_records(records []*filescanner.WatchRecord) (){
   for _, rec := range records {
     dump_record(rec)
   }
@@ -25,7 +26,7 @@ func timer_func(w *config.Watcher, ticker *time.Ticker, quit chan struct{},redis
     select {
     case <- ticker.C:
       fmt.Print("tick\n")
-      records, err := scan_pass(w.PATH,redisClient)
+      records, err := filescanner.ScanPass(w.PATH,redisClient)
       if(err!=nil){
         fmt.Printf("ERROR: could not perform scan pass: %s\n", err)
       } else {

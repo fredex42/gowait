@@ -1,27 +1,28 @@
 package kuberneteslink
 
 import (
-  "config"
-  "k8s.io/client-go/kubernetes"
-  batchv1 "k8s.io/api/batch/v1"
+  "github.com/gowait/filescanner"
+  "github.com/gowait/config"
+  //appsv1 "k8s.io/api/apps/v1"
+  v1 "k8s.io/api/batch/v1"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	scheme "k8s.io/client-go/kubernetes/scheme"
-  rest "k8s.io/client-go/rest"
+	"k8s.io/client-go/kubernetes"
+  //"k8s.io/client-go/tools/clientcmd"
+  //"k8s.io/client-go/rest"
 )
 /**
 creates a kubernetes job in response to an event for the given watcher
 */
-func CreateJobForEvent(k8clientSet *kubernetes.ClientSet, runConfig *config.RunConfig, event *main.WatchRecord) (*v1.Job, error) {
-  jobsClient := clientset.BatchV1().Jobs()
+func CreateJobForEvent(k8clientSet *kubernetes.Clientset, runConfig *config.RunConfig, event *filescanner.WatchRecord) (*v1.Job, error) {
+  jobsClient := k8clientSet.BatchV1().Jobs(runConfig.NAMESPACE)
 
-  newJob := &batchv1.Job{
+  newJob := &v1.Job{
     ObjectMeta: metav1.ObjectMeta{
       GenerateName: "gowait-event-",
       Namespace: runConfig.NAMESPACE,
     },
-    Spec: batchv1.JobSpec{
+    Spec: v1.JobSpec{
       Template: apiv1.PodTemplateSpec{
         ObjectMeta: metav1.ObjectMeta{
           GenerateName: "gowait-event-",
@@ -38,12 +39,12 @@ func CreateJobForEvent(k8clientSet *kubernetes.ClientSet, runConfig *config.RunC
         },
       },
     },
-  },
+  }
 
-  result, err := jobsClient.CreateJob(newJob)
+  result, err := jobsClient.Create(newJob)
   if(err!=nil){
     return nil, err
   } else {
-    return result
+    return result, nil
   }
 }
