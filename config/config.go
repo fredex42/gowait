@@ -15,7 +15,7 @@ type RunConfig struct {
   NAMESPACE string
   COMMAND []string
   IMAGE string
-
+  ENVIRONMENT map[string]string
 }
 
 type PersistentStore struct {
