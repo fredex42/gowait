@@ -1,4 +1,4 @@
-module github.com/gowait
+module github.com/fredex42/gowait
 
 require (
 	github.com/go-redis/redis v6.15.2+incompatible
