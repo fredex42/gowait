@@ -32,7 +32,7 @@ func TimerFunc(w *config.Watcher, ticker *time.Ticker, quit chan struct{}, redis
 			if err != nil {
 				fmt.Printf("ERROR: could not perform scan pass: %s\n", err)
 			} else {
-				//check_and_apply(records)
+				CheckAndApply(records)
 				DumpRecords(records)
 			}
 		case <-quit:

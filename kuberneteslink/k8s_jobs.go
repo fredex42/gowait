@@ -31,7 +31,7 @@ func EnvVarFromMap(envMap *map[string]string) []apiv1.EnvVar {
 /**
 creates a kubernetes job in response to an event for the given watcher
 */
-func CreateJobForEvent(k8clientSet *kubernetes.Clientset, runConfig *config.RunConfig, event *filescanner.WatchRecord) (*v1.Job, error) {
+func CreateJobForEvent(k8clientSet *kubernetes.Clientset, runConfig *config.K8RunConfig, event *filescanner.WatchRecord) (*v1.Job, error) {
 	jobsClient := k8clientSet.BatchV1().Jobs(runConfig.NAMESPACE)
 
 	newJob := &v1.Job{
