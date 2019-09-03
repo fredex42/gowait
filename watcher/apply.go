@@ -7,7 +7,8 @@ import (
 	"github.com/go-redis/redis"
 	"k8s.io/client-go/kubernetes"
 	"log"
-	"strings"
+	//"strings"
+	"time"
 )
 
 func ApplySinglek8s(k8clientSet *kubernetes.Clientset, redisClient *redis.Client, record *filescanner.WatchRecord, runConfig *config.K8RunConfig) error {
@@ -15,9 +16,9 @@ func ApplySinglek8s(k8clientSet *kubernetes.Clientset, redisClient *redis.Client
 	if err != nil {
 		log.Print("Could not create Kubernetes job: ", err)
 	} else {
-		strings.Builder{}
-		redisClient.Set("job:")
+		redisClient.Set("job:", job.UID, 5*24*time.Hour)
 	}
+	return nil
 }
 
 func CheckAndApply(records []*filescanner.WatchRecord, redisClient *redis.Client, config *config.Watcher, k8clientSet *kubernetes.Clientset) error {

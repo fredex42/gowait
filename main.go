@@ -6,9 +6,28 @@ import (
 	"github.com/fredex42/gowait/watcher"
 	_ "github.com/fredex42/gowait/watcher"
 	"github.com/go-redis/redis"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"log"
 	"os"
 )
+
+func connect_k8s() (*kubernetes.Clientset, error) {
+	//connect to Kubernetes if possible
+	k8Config, err := rest.InClusterConfig() //FIXME: add commandline flag for K8s mode
+	if err != nil {
+		log.Print("Could not connect to Kubernetes in-cluster: ", err) //Not a fatal error
+		return nil, err
+	} else {
+		clientSet, clientsetErr := kubernetes.NewForConfig(k8Config)
+		if clientsetErr != nil {
+			log.Printf("Could not set up Kubernetes clientsetfor config %s: %s", k8Config.APIPath, err)
+			return nil, clientsetErr
+		} else {
+			return clientSet, nil
+		}
+	}
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -35,12 +54,13 @@ func main() {
 
 	fmt.Printf("INFO: Connected to Redis at %s on db %d\n\n", configData.REDIS.REDISHOST, configData.REDIS.REDISDB)
 
+	clientSet, _ := connect_k8s()
 	log.Println(configData.WATCHERS)
 
 	quitChans := make([](chan struct{}), len(configData.WATCHERS))
 
 	for w := range configData.WATCHERS {
-		ch, tickerErr := watcher.SetupTicker(&configData.WATCHERS[w], 2, redisdb)
+		ch, tickerErr := watcher.SetupTicker(&configData.WATCHERS[w], 2, redisdb, clientSet)
 		if tickerErr != nil {
 			log.Print("Could not set up watcher for ", configData.WATCHERS[w], err)
 			quitChans[w] = nil

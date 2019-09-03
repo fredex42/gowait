@@ -16,8 +16,8 @@ import (
 	//"k8s.io/client-go/rest"
 )
 
-func EnvVarFromMap(envMap *map[string]string) []apiv1.EnvVar {
-	rtn := make([]apiv1.EnvVar, len(*envMap))
+func EnvVarFromMap(envMap *map[string]string, event *filescanner.WatchRecord) []apiv1.EnvVar {
+	rtn := make([]apiv1.EnvVar, len(*envMap)+2)
 	var i = 0
 
 	for k, v := range *envMap {
@@ -25,6 +25,8 @@ func EnvVarFromMap(envMap *map[string]string) []apiv1.EnvVar {
 		i++
 	}
 
+	rtn[i] = apiv1.EnvVar{Name: "filename", Value: event.Filename}
+	rtn[i+1] = apiv1.EnvVar{Name: "path", Value: event.Path}
 	return rtn
 }
 
@@ -50,7 +52,7 @@ func CreateJobForEvent(k8clientSet *kubernetes.Clientset, runConfig *config.K8Ru
 							Name:    "gowait-runner",
 							Image:   runConfig.IMAGE,
 							Command: runConfig.COMMAND,
-							Env:     EnvVarFromMap(&runConfig.ENVIRONMENT),
+							Env:     EnvVarFromMap(&runConfig.ENVIRONMENT, event),
 						},
 					},
 					RestartPolicy: apiv1.RestartPolicyOnFailure,

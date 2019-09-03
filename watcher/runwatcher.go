@@ -1,6 +1,9 @@
 package watcher
 
-import "time"
+import (
+	"k8s.io/client-go/kubernetes"
+	"time"
+)
 import "fmt"
 import "github.com/fredex42/gowait/config"
 import "github.com/go-redis/redis"
@@ -23,7 +26,7 @@ func DumpRecords(records []*filescanner.WatchRecord) {
 	}
 }
 
-func TimerFunc(w *config.Watcher, ticker *time.Ticker, quit chan struct{}, redisClient *redis.Client) {
+func TimerFunc(w *config.Watcher, ticker *time.Ticker, quit chan struct{}, redisClient *redis.Client, clientSet *kubernetes.Clientset) {
 	for {
 		select {
 		case <-ticker.C:
@@ -32,7 +35,7 @@ func TimerFunc(w *config.Watcher, ticker *time.Ticker, quit chan struct{}, redis
 			if err != nil {
 				fmt.Printf("ERROR: could not perform scan pass: %s\n", err)
 			} else {
-				CheckAndApply(records)
+				CheckAndApply(records, redisClient, w, clientSet)
 				DumpRecords(records)
 			}
 		case <-quit:
@@ -42,10 +45,10 @@ func TimerFunc(w *config.Watcher, ticker *time.Ticker, quit chan struct{}, redis
 	}
 }
 
-func SetupTicker(w *config.Watcher, duration int, redisClient *redis.Client) (chan struct{}, error) {
+func SetupTicker(w *config.Watcher, duration int, redisClient *redis.Client, clientSet *kubernetes.Clientset) (chan struct{}, error) {
 	ticker := time.NewTicker(time.Duration(duration) * time.Second)
 	quit := make(chan struct{})
 
-	go TimerFunc(w, ticker, quit, redisClient)
+	go TimerFunc(w, ticker, quit, redisClient, clientSet)
 	return quit, nil
 }
